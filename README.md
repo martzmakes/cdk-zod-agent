@@ -2,6 +2,8 @@
 
 This project is a TypeScript AWS CDK application that provisions an internal, IAM-authorized API and generates a Zod schema-based API client. The API client is designed for seamless integration with LangChain and LangGraph ReAct agents, enabling secure, schema-validated interactions in LLM-powered workflows.
 
+
+
 ## Features
 
 - **AWS CDK Infrastructure**: Deploys an internal API with IAM authorization.
@@ -60,6 +62,12 @@ npx @langchain/langgraph-cli@latest dev
 ## Example Usage
 
 The generated API client can be imported and used in your LangChain or LangGraph ReAct agent to make secure, schema-validated calls to your internal API.
+
+## Example: LangGraph WebUI in Action
+
+Below is an example of the LangGraph WebUI using this project, demonstrating a Superman-themed agent workflow:
+
+![LangGraph Superman Example](superman-example.gif)
 
 ## About
 
