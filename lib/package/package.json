@@ -1,0 +1,15 @@
+{
+  "name": "@martzmakes/cdk-zod-agent",
+  "version": "0.1.0",
+  "bin": {
+    "cdk-zod-agent": "bin/cdk-zod-agent.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
