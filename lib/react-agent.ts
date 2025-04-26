@@ -42,7 +42,7 @@ const generateTools = <T extends Record<string, any>>(client: T) => {
             });
             return JSON.stringify(data);
           } catch (err: any) {
-            return `Error fetching brand metadata: ${err.message}`;
+            return `Error fetching: ${err.message}`;
           }
         },
         {
@@ -64,7 +64,7 @@ const prompt = (
 ): BaseMessageLike[] => {
   const userName = config.configurable?.userName || "Human";
   const userId = config.configurable?.userId;
-  const systemMsg = `You are a helpful assistant. You should only use the tools for providing help to the user. Address the user as ${userName}.  Their userId is ${userId}.`;
+  const systemMsg = `You are a helpful assistant. Address the user as ${userName}.  Their userId is ${userId}.`;
   return [{ role: "system", content: systemMsg }, ...state.messages];
 };
 
@@ -72,9 +72,10 @@ console.log(`Tools available: ${tools.map((t) => t.name).join(", ")}`);
 
 const llm = new ChatBedrockConverse({
   region: process.env.AWS_DEFAULT_REGION || "us-east-1",
-  credentials: fromSSO({ profile: process.env.AWS_PROFILE }),
-  model: "amazon.nova-micro-v1:0",
-  temperature: 0,
+  credentials: fromSSO({ profile: process.env.AWS_PROFILE }), // you could also use fromEnv()
+  // model: "amazon.nova-micro-v1:0", // nova micro did not work well
+  model: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
+  temperature: 0.5,
 });
 
 export const agent = createReactAgent({

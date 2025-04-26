@@ -1,4 +1,4 @@
-import { Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
+import { CfnOutput, Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import {
   AuthorizationType,
   EndpointType,
@@ -22,7 +22,6 @@ import { EndpointLambda } from "../interfaces/EndpointLambda";
 
 export interface ApiProps {
   endpoints?: EndpointLambda[];
-  name: string;
 }
 
 export class InternalApi extends Construct {
@@ -36,7 +35,7 @@ export class InternalApi extends Construct {
 
     this.endpointsLambda = props.endpoints;
 
-    const { name } = props;
+    const name = id;
 
     const logs = new LogGroup(this, `/${name}ApiLogs`, {
       logGroupName: `/${name}Api`,
@@ -71,6 +70,11 @@ export class InternalApi extends Construct {
     });
 
     this.processLambdaEndpoints(props.endpoints || []);
+
+    new CfnOutput(this, "ApiId", {
+      value: this.restApi.restApiId,
+      description: "API ID",
+    });
   }
 
   processLambdaEndpoints(lambdaEndpoints: EndpointLambda[]): void {

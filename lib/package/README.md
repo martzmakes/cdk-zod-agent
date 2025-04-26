@@ -1,0 +1,3 @@
+# Package
+
+The api client can easily be exported as its own npm package for use in other projects...

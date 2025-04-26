@@ -38,18 +38,25 @@ export class Lambda extends Construct {
       architecture: Architecture.ARM_64,
       retryAttempts: 0,
       logGroup,
+      bundling: {
+        externalModules: [],
+      },
       ...props,
     });
 
     // All lambdas should have access to publish to the event bus
     const bus = EventBus.fromEventBusName(this, "EventBus", "default");
     bus.grantPutEventsTo(fn);
+    this.fn = fn;
 
     if (props.dynamos) this.addDynamoAccess(props.dynamos);
   }
 
   addDynamoAccess(tables: DynamoAccessProps) {
     Object.entries(tables).forEach(([key, value]) => {
+      console.log(
+        `Granting ${value.access} access to ${key} (${value.table.tableName})`
+      );
       if (value.access === "r") {
         value.table.grantReadData(this.fn);
       } else if (value.access === "w") {

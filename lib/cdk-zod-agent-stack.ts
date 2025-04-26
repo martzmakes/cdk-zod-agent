@@ -1,16 +1,18 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { Dynamo } from "./constructs/dynamo";
+import { InternalApi } from "./constructs/internal-api";
+import { endpoints } from "./lambda/routes";
 
 export class CdkZodAgentStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkZodAgentQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const dynamo = new Dynamo(this, "ZodTable");
+    new InternalApi(this, "ZodApi", {
+      endpoints: endpoints({
+        table: dynamo.table,
+      }),
+    });
   }
 }

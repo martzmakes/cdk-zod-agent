@@ -48,7 +48,7 @@ You can start the LangGraph WebUI for local development and testing with:
 npx @langchain/langgraph-cli@latest dev
 ```
 
-> **Note:** The LangGraph WebUI does **not** work in Safari. Please use Chrome, Firefox, or Edge for the best experience.
+> **Note:** The LangGraph WebUI does **not** work in Safari or Brave. Please use Chrome, Firefox, or Edge for the best experience.
 
 ## Project Structure
 
