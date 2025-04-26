@@ -56,34 +56,34 @@ const generateTools = <T extends Record<string, any>>(client: T) => {
     .filter((tool) => tool !== null);
 };
 
-const tools = [
-  ...generateTools(heroClient),
-];
+const tools = [...generateTools(heroClient(process.env.API_ID!))];
+
+const prompt = (
+  state: typeof MessagesAnnotation.State,
+  config: RunnableConfig
+): BaseMessageLike[] => {
+  const userName = config.configurable?.userName || "Human";
+  const userId = config.configurable?.userId;
+  const systemMsg = `You are a helpful assistant. You should only use the tools for providing help to the user. Address the user as ${userName}.  Their userId is ${userId}.`;
+  return [{ role: "system", content: systemMsg }, ...state.messages];
+};
+
+console.log(`Tools available: ${tools.map((t) => t.name).join(", ")}`);
+
+const llm = new ChatBedrockConverse({
+  region: process.env.AWS_DEFAULT_REGION || "us-east-1",
+  credentials: fromSSO({ profile: process.env.AWS_PROFILE }),
+  model: "amazon.nova-micro-v1:0",
+  temperature: 0,
+});
+
+export const agent = createReactAgent({
+  llm,
+  tools,
+  prompt,
+});
 
 const main = async () => {
-  const prompt = (
-    state: typeof MessagesAnnotation.State,
-    config: RunnableConfig
-  ): BaseMessageLike[] => {
-    const userName = config.configurable?.userName;
-    const userId = config.configurable?.userId;
-    const systemMsg = `You are a helpful assistant. Address the user as ${userName}.  Their userId is ${userId}.`;
-    return [{ role: "system", content: systemMsg }, ...state.messages];
-  };
-
-  const llm = new ChatBedrockConverse({
-    region: process.env.AWS_DEFAULT_REGION || "us-east-1",
-    credentials: fromSSO({ profile: process.env.AWS_PROFILE }),
-    model: "amazon.nova-micro-v1:0",
-    temperature: 0,
-  });
-
-  const agent = createReactAgent({
-    llm,
-    tools,
-    prompt,
-  });
-
   try {
     // === Timing and tool call tracking ===
     const startTime = process.hrtime();
@@ -101,7 +101,7 @@ const main = async () => {
     );
 
     const endTime = process.hrtime(startTime);
-    const totalTimeMs = (endTime[0] * 1e3) + (endTime[1] / 1e6);
+    const totalTimeMs = endTime[0] * 1e3 + endTime[1] / 1e6;
 
     // Log agent messages and count tool calls
     let toolCallCount = 0;
@@ -134,22 +134,32 @@ const main = async () => {
       if (msg._getType && msg._getType() === "ai" && msg.response_metadata) {
         // Try all possible locations for token usage
         const aiMsg = msg as AIMessage;
-        const usage = msg.response_metadata.tokenUsage ||
-                      msg.response_metadata.usage ||
-                      aiMsg.usage_metadata;
+        const usage =
+          msg.response_metadata.tokenUsage ||
+          msg.response_metadata.usage ||
+          aiMsg.usage_metadata;
         if (usage) {
           // OpenAI style: { promptTokens, completionTokens }
-          if (usage.promptTokens !== undefined && usage.completionTokens !== undefined) {
+          if (
+            usage.promptTokens !== undefined &&
+            usage.completionTokens !== undefined
+          ) {
             totalPromptTokens += usage.promptTokens;
             totalCompletionTokens += usage.completionTokens;
           }
           // OpenAI style: { prompt_tokens, completion_tokens }
-          else if (usage.prompt_tokens !== undefined && usage.completion_tokens !== undefined) {
+          else if (
+            usage.prompt_tokens !== undefined &&
+            usage.completion_tokens !== undefined
+          ) {
             totalPromptTokens += usage.prompt_tokens;
             totalCompletionTokens += usage.completion_tokens;
           }
           // LangChain style: { input_tokens, output_tokens }
-          else if (usage.input_tokens !== undefined && usage.output_tokens !== undefined) {
+          else if (
+            usage.input_tokens !== undefined &&
+            usage.output_tokens !== undefined
+          ) {
             totalPromptTokens += usage.input_tokens;
             totalCompletionTokens += usage.output_tokens;
           }
@@ -165,7 +175,11 @@ const main = async () => {
     console.log(`Prompt tokens: ${totalPromptTokens}`);
     console.log(`Completion tokens: ${totalCompletionTokens}`);
     console.log(`Total tokens: ${totalPromptTokens + totalCompletionTokens}`);
-    console.log(`Estimated cost: $${totalCost.toFixed(6)} (input: $${inputCost.toFixed(6)}, output: $${outputCost.toFixed(6)})`);
+    console.log(
+      `Estimated cost: $${totalCost.toFixed(6)} (input: $${inputCost.toFixed(
+        6
+      )}, output: $${outputCost.toFixed(6)})`
+    );
 
     // === Timing and tool call summary ===
     console.log("\n=== Timing & Tool Call Summary ===");
@@ -176,4 +190,4 @@ const main = async () => {
   }
 };
 
-main();
+// main();
